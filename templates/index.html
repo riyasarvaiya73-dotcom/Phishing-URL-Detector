@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Phishing URL Detector</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Main page */
+        .page {
+            width: 90%;
+            max-width: 700px;
+            margin: 40px auto;
+        }
+
+        /* -----------------------------
+           Main Detector Card
+        ----------------------------- */
+
+        .container {
+            width: 100%;
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        /* -----------------------------
+           Result Card
+        ----------------------------- */
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #334155;
+        }
+
+        .result h2 {
+            margin-bottom: 10px;
+        }
+
+        .url-display {
+            word-break: break-all;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .probability {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* -----------------------------
+           History Section
+        ----------------------------- */
+
+        .history-section {
+            width: 100%;
+            margin-top: 30px;
+
+            background: #1e293b;
+
+            padding: 25px;
+
+            border-radius: 15px;
+
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .history-section h2 {
+            text-align: center;
+            margin-bottom: 20px;
+
+            font-size: 26px;
+            color: white;
+        }
+
+        /* Table container */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* History table */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+
+            /* Important */
+            table-layout: fixed;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 12px 8px;
+
+            border: 1px solid #475569;
+
+            text-align: center;
+            vertical-align: middle;
+
+            /* Allow text to wrap */
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        /* Table heading */
+        .history-table th {
+            background: #2563eb;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Table data */
+        .history-table td {
+            background: #334155;
+            color: white;
+        }
+
+        /* Alternate rows */
+        .history-table tr:nth-child(even) td {
+            background: #1e293b;
+        }
+
+        /* -----------------------------
+           Column Widths
+        ----------------------------- */
+
+        /* Time */
+        .history-table th:nth-child(1),
+        .history-table td:nth-child(1) {
+            width: 28%;
+        }
+
+        /* URL */
+        .history-table th:nth-child(2),
+        .history-table td:nth-child(2) {
+            width: 32%;
+        }
+
+        /* Result */
+        .history-table th:nth-child(3),
+        .history-table td:nth-child(3) {
+            width: 23%;
+        }
+
+        /* Confidence */
+        .history-table th:nth-child(4),
+        .history-table td:nth-child(4) {
+            width: 17%;
+        }
+
+        /* -----------------------------
+           URL Styling
+        ----------------------------- */
+
+        .history-url {
+            word-break: break-all;
+            overflow-wrap: anywhere;
+        }
+
+        /* -----------------------------
+           Result Colors
+        ----------------------------- */
+
+        .phishing {
+            color: #f87171;
+            font-weight: bold;
+        }
+
+        .legitimate {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        /* -----------------------------
+           No History Message
+        ----------------------------- */
+
+        .no-history {
+            color: #94a3b8;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* -----------------------------
+           Mobile
+        ----------------------------- */
+
+        @media (max-width: 600px) {
+
+            .page {
+                width: 95%;
+            }
+
+            .container {
+                padding: 25px 20px;
+            }
+
+            .history-section {
+                padding: 20px 15px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .history-section h2 {
+                font-size: 22px;
+            }
+
+            .history-table th,
+            .history-table td {
+                padding: 10px 5px;
+                font-size: 13px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="page">
+
+        <!-- =========================
+             MAIN DETECTOR
+        ========================== -->
+
+        <div class="container">
+
+            <h1>🛡️ Phishing URL Detector</h1>
+
+            <p class="subtitle">
+                Enter a URL to analyze whether it is legitimate or potentially malicious.
+            </p>
+
+
+            <form method="POST">
+
+                <input
+                    type="text"
+                    name="url"
+                    class="url-input"
+                    placeholder="https://example.com"
+                    value="{{ url }}"
+                    required
+                >
+
+                <button type="submit">
+                    🔍 Check URL
+                </button>
+
+            </form>
+
+
+            <!-- =========================
+                 RESULT
+            ========================== -->
+
+            {% if result %}
+
+            <div class="result">
+
+                {% if result == "Phishing URL" %}
+
+                    <h2>🔴 Phishing URL Detected</h2>
+
+                {% else %}
+
+                    <h2>🟢 Legitimate URL</h2>
+
+                {% endif %}
+
+
+                <p class="url-display">
+                    {{ url }}
+                </p>
+
+
+                <p class="probability">
+                    Confidence: {{ probability }}%
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- =========================
+             WEBSITE CHECKING HISTORY
+        ========================== -->
+
+        <div class="history-section">
+
+            <h2>📜 Website Checking History</h2>
+
+
+            {% if history %}
+
+            <div class="table-wrapper">
+
+                <table class="history-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Date & Time
+                            </th>
+
+                            <th>
+                                URL
+                            </th>
+
+                            <th>
+                                Result
+                            </th>
+
+                            <th>
+                                Confidence
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for item in history %}
+
+                        <tr>
+
+                            <!-- Time -->
+
+                            <td>
+                                {{ item.time }}
+                            </td>
+
+
+                            <!-- URL -->
+
+                            <td class="history-url">
+                                {{ item.url }}
+                            </td>
+
+
+                            <!-- Result -->
+
+                            <td>
+
+                                {% if item.result == "Phishing URL" %}
+
+                                    <span class="phishing">
+                                        🔴 Phishing
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="legitimate">
+                                        🟢 Legitimate
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- Confidence -->
+
+                            <td>
+                                {{ item.probability }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            {% else %}
+
+            <p class="no-history">
+                No URLs scanned yet.
+            </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
